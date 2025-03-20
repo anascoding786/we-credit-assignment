@@ -1,0 +1,23 @@
+docker network create loki
+
+docker run -d --name=loki --network=loki -p 3100:3100 grafana/loki:latest
+docker run -d --name=grafana --network=loki -p 3000:3000 grafana/grafana
+
+server:
+  http_listen_port: 9080
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: "log_scraper"
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: "golang_service"
+          __path__: /var/log/app.log
+docker run -d --name=promtail --network=loki -v /var/log:/var/log -v $(pwd)/promtail.yml:/etc/promtail/promtail.yml grafana/promtail:latest -config.file=/etc/promtail/promtail.yml
