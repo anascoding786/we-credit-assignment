@@ -1,0 +1,32 @@
+# Use official Golang image as the base
+FROM golang:1.21 AS builder
+
+# Set the working directory
+WORKDIR /app
+
+# Copy files
+COPY . .
+
+# Download dependencies
+RUN go mod init logservice && go mod tidy
+
+# Build the application
+RUN go build -o app main.go
+
+# Create a minimal runtime image
+FROM debian:stable-slim
+
+# Set the working directory
+WORKDIR /app
+
+# Copy the built binary from the builder stage
+COPY --from=builder /app/app .
+
+# Copy log directory
+RUN mkdir -p /var/log
+
+# Expose the necessary port (if any)
+EXPOSE 8080
+
+# Run the application
+CMD ["/app/app"]
