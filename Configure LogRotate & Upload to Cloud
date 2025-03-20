@@ -1,0 +1,12 @@
+/var/log/app.log {
+    daily
+    rotate 7
+    compress
+    missingok
+    notifempty
+    copytruncate
+    postrotate
+        aws s3 cp /var/log/app.log s3://your-bucket-name/
+    endscript
+}
+sudo logrotate -f /etc/logrotate.d/golang-service
